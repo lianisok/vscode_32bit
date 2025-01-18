@@ -19,7 +19,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 'lts'
+          node-version: '22.13.0'
 
       # 配置 msvs_version 为 Visual Studio 2022
       - name: Configure npm for Visual Studio
