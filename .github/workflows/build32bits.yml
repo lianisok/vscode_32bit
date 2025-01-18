@@ -1,0 +1,60 @@
+name: Build 32-bit VS Code
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      # 检出代码
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 安装最新的 Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 'lts'
+
+      # 配置 msvs_version 为 Visual Studio 2022
+      - name: Configure npm for Visual Studio
+        run: |
+          npm config set msvs_version 2022
+
+      # 克隆源码库
+      - name: Clone VS Code repository
+        run: |
+          git clone https://github.com/microsoft/vscode.git
+          cd vscode
+          git checkout main
+          git pull https://github.com/microsoft/vscode.git main
+
+      # 配置 32 位环境变量并安装依赖
+      - name: Prepare 32-bit environment
+        shell: pwsh
+        run: |
+          git clean -fdx
+          $env:npm_config_arch = 'ia32'
+          yarn install
+
+      # 下载 32 位版本的 Electron
+      - name: Download 32-bit Electron
+        shell: pwsh
+        run: |
+          yarn electron ia32
+
+      # 构建 32 位 VS Code
+      - name: Build VS Code
+        shell: pwsh
+        run: |
+          .\scripts\code.bat
+
+      # 验证版本信息
+      - name: Verify Build
+        run: |
+          .\scripts\code-cli.bat --version
